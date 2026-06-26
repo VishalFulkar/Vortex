@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: vortex_db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=9575
+      - POSTGRES_DB=vortex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build: ./Server
+    container_name: vortex-server
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgres://postgres:9575@db:5432/vortex
+    volumes:
+      - ./Server:/app
+      - /app/node_modules
+    depends_on:
+      - db
+
+  client:
+    build: ./Client
+    container_name: vortex-client
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./Client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+
+volumes:
+  postgres_data:
