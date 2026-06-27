@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 const UserModel = require("../models/user.model")
+const pool = require("../config/db")
 
 async function register(req, res) {
     const { name, email, password } = req.body;
@@ -69,16 +70,16 @@ async function login(req, res) {
             })
         }
         const token = jwt.sign({
-            id: user._id,
+            id: user.id,
             role: user.role
-        }, process.env.JWT_SECRET)
+        }, process.env.JWT_SECRET, { expiresIn: "1h" })
 
         res.cookie("token", token);
 
         res.status(200).json({
             message: "User logged in successfully",
             user: {
-                id: user._id,
+                id: user.id,
                 email: user.email,
                 role: user.role
             }
@@ -105,4 +106,19 @@ async function logout(req, res) {
     }
 }
 
-module.exports = { register, login, logout }
+async function getMe(req, res) {
+    const { id } = req.user;
+    const result = await pool.query(
+        " SELECT id, name, email, created_at FROM users WHERE id = $1",
+        [id]
+    )
+    if (!result.rows[0]) return res.status(404).json({
+        message: "User not found"
+    })
+
+    res.status(200).json({
+        user: result.rows[0]
+    })
+}
+
+module.exports = { register, login, logout, getMe }
