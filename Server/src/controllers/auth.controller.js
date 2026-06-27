@@ -92,4 +92,17 @@ async function login(req, res) {
     }
 }
 
-module.exports = { register, login }
+async function logout(req, res) {
+    try {
+        res.clearCookie("token")
+        res.status(200).json({
+            message: "User Logged out Successfully"
+        })
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal server error"
+        })
+    }
+}
+
+module.exports = { register, login, logout }
