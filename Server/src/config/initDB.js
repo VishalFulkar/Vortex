@@ -11,10 +11,19 @@ const initDB = async () => {
         storage_quota BIGINT DEFAULT 5368709120, -- 5GB default
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS folders (
+        id          SERIAL PRIMARY KEY,
+        name        VARCHAR(255) NOT NULL,
+        user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        parent_id   INTEGER REFERENCES folders(id) ON DELETE CASCADE,
+        created_at  TIMESTAMP DEFAULT NOW(),
+        updated_at  TIMESTAMP DEFAULT NOW()
+      );
     `;
   try {
     await pool.query(initTableQuery);
-    console.log("Database connected and users table verified/created successfully");
+    console.log("Database connected and tables verified/created successfully");
   } catch (err) {
     console.error("Database initialization failed:", err.message);
     process.exit(1);

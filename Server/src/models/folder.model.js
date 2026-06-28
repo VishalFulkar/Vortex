@@ -1,4 +1,4 @@
-const { pool } = require('../config/db');
+const pool = require('../config/db');
 
 const folderModel = {
     create: async ({name, userId, parentId}) => {
