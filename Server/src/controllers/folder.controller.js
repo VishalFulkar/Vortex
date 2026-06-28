@@ -1,8 +1,7 @@
 const folderModel = require('../models/folder.model');
 
 const createFolder = async (req, res) => {
-    const { name, parentId: parentIdCamel, parent_id } = req.body || {};
-    const parentId = parentIdCamel ?? parent_id;
+    const { name, parentId } = req.body || {};
     const userId = req.user.id;
     if (!name || !name.trim()) {
         return res.status(400).json({
@@ -134,9 +133,51 @@ const deleteFolder = async (req, res) => {
     }
 }
 
+const updateParent = async (req, res) => {
+    const { id } = req.params;
+    const { parentId } = req.body || {};
+    const userId = req.user.id;
+
+    try {
+        const folder = await folderModel.findById(id, userId);
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                error: 'Folder not found'
+            });
+        }
+
+        if (parentId) {
+            const parent = await folderModel.findById(parentId, userId);
+            if (!parent) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'Parent folder not found'
+                });
+            }
+        }
+
+        const updated = await folderModel.updateParent(id, userId, parentId);
+        res.status(200).json({
+            success: true,
+            folder: updated
+        });
+    }
+    catch (error) {
+        console.error('updateParent error:', error);
+        const isLogicError = error.message.includes('cannot be moved');
+        res.status(isLogicError ? 400 : 500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
+
 module.exports = {
     createFolder,
     getFolders,
     renameFolder,
-    deleteFolder
+    deleteFolder,
+    updateParent,
 };
