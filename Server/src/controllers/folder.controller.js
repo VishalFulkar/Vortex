@@ -1,7 +1,8 @@
 const folderModel = require('../models/folder.model');
 
 const createFolder = async (req, res) => {
-    const { name, parentId } = req.body || {};
+    const { name, parentId: parentIdCamel, parent_id } = req.body || {};
+    const parentId = parentIdCamel ?? parent_id;
     const userId = req.user.id;
     if (!name || !name.trim()) {
         return res.status(400).json({
@@ -48,6 +49,14 @@ const getFolders = async (req, res) => {
             userId, parentId || null
         );
 
+        if (folders.length === 0) {
+            return res.status(200).json({
+                success: true,
+                folders: [],
+                message: 'No folders found'
+            });
+        }
+
         res.status(200).json({
             success: true,
             folders
@@ -64,7 +73,7 @@ const getFolders = async (req, res) => {
 
 const renameFolder = async (req, res) => {
     const { id } = req.params;
-    const { name } = req.body;
+    const { name } = req.body || {};
     const userId = req.user.id;
 
     if (!name || !name.trim()) {
@@ -97,8 +106,37 @@ const renameFolder = async (req, res) => {
     }
 }
 
+const deleteFolder = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const folder = await folderModel.findById(id, userId);
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                error: "Folder not found"
+            })
+        }
+
+        await folderModel.delete(id, userId);
+        res.status(200).json({
+            success: true,
+            message: 'Folder deleted successfully'
+        });
+    }
+    catch (error) {
+        console.error("delete folder error: ", error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     createFolder,
     getFolders,
-    renameFolder
+    renameFolder,
+    deleteFolder
 };
