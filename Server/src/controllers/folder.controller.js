@@ -62,7 +62,43 @@ const getFolders = async (req, res) => {
     }
 };
 
+const renameFolder = async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+    const userId = req.user.id;
+
+    if (!name || !name.trim()) {
+        return res.status(400).json({
+            success: false,
+            error: "Folder name is required"
+        })
+    }
+    try {
+        const folder = await folderModel.findById(id, userId);
+        if (!folder) {
+            return res.status(404).json({
+                success: false,
+                error: "Folder not found"
+            })
+        }
+
+        const updated = await folderModel.rename(id, userId, name.trim());
+        res.status(200).json({
+            success: true,
+            folder: updated
+        });
+    }
+    catch (error) {
+        console.error("rename folder error: ", error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     createFolder,
-    getFolders
+    getFolders,
+    renameFolder
 };
