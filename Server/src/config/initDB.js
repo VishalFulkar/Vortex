@@ -20,6 +20,20 @@ const initDB = async () => {
         created_at  TIMESTAMP DEFAULT NOW(),
         updated_at  TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS files (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        original_name VARCHAR(255),
+        path TEXT NOT NULL,
+        size BIGINT,
+        mimetype VARCHAR(100),
+        hash VARCHAR(64),
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        folder_id INT REFERENCES folders(id) ON DELETE SET NULL,
+        is_deleted BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
     `;
   try {
     await pool.query(initTableQuery);

@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const authRoute = require("./routes/auth.route")
 const folderRoute = require("./routes/folder.route")
+const fileRoute = require("./routes/file.route")
 const cookieParser = require("cookie-parser")
 const app = express();
 
@@ -13,5 +14,6 @@ app.use(cookieParser());
 //Routes
 app.use("/api/auth", authRoute);
 app.use("/api/folder", folderRoute);
+app.use("/api/file", fileRoute);
 
 module.exports = app;

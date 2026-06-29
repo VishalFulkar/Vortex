@@ -29,16 +29,34 @@ const folderModel = {
     },
 
     delete: async (id, userId) => {
+    const allFolderIds = await folderModel.getAllSubfolderIds(id, userId);
+
+    if (allFolderIds.length > 0) {
+      const sizeResult = await pool.query(
+        `SELECT COALESCE(SUM(size), 0) AS total_size
+         FROM files
+         WHERE folder_id = ANY($1) AND is_deleted = FALSE`,
+        [allFolderIds]
+      );
+      const totalSize = sizeResult.rows[0].total_size;
+      await pool.query(
+        `UPDATE files SET is_deleted = TRUE
+         WHERE folder_id = ANY($1) AND is_deleted = FALSE`,
+        [allFolderIds]
+      );
+      if (totalSize > 0) {
         await pool.query(
-            `UPDATE files SET is_deleted = TRUE WHERE folder_id = $1`,
-            [id]
+          `UPDATE users SET storage_used = storage_used - $1 WHERE id = $2`,
+          [totalSize, userId]
         );
-        const result = await pool.query(
-            `DELETE FROM folders WHERE id = $1 AND user_id = $2`,
-            [id, userId]
-        );
-        return result.rowCount;
-    },
+      }
+    }
+    const result = await pool.query(
+      `DELETE FROM folders WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+    return result.rowCount;
+  },
 
     rename: async (id, userId, name) => {
         const result = await pool.query(

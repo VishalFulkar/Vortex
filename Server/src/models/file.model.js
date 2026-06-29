@@ -1,11 +1,11 @@
 const pool = require("../config/db")
 
 const fileModel = {
-    create: async ({ name, original_name, path, size, mimetype, userId, folderId }) => {
+    create: async ({ name, originalName, path, size, mimetype, hash, userId, folderId }) => {
         const result = await pool.query(
-            `INSERT INTO files (name, path, size, mimetype, userId, folderId)
-            VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [name, original_name, path, size, mimetype, userId, folderId || null]
+            `INSERT INTO files (name, original_name, path, size, mimetype, hash, user_id, folder_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [name, originalName, path, size, mimetype, hash, userId, folderId || null]
         );
         return result.rows[0];
     },
@@ -15,7 +15,7 @@ const fileModel = {
             `SELECT * FROM files
             WHERE user_id = $1
             AND is_deleted = FALSE
-            AND folder_id ${folderId ? "$2" : "IS NULL"}
+            AND folder_id ${folderId ? "= $2" : "IS NULL"}
             ORDER BY created_at DESC`,
             folderId ? [userId, folderId] : [userId]
         );
