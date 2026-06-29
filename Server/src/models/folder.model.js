@@ -13,7 +13,8 @@ const folderModel = {
     findByUser: async (userId, parentId) => {
         const result = await pool.query(
             `SELECT * FROM folders WHERE user_id = $1
-            AND parent_id ${parentId ? "= $2" : "IS NULL"}`,
+            AND parent_id ${parentId ? "= $2" : "IS NULL"}
+            ORDER BY created_at DESC`,
             parentId ? [userId, parentId] : [userId]
         );
         return result.rows;
