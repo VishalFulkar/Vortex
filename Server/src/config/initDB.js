@@ -34,6 +34,23 @@ const initDB = async () => {
         is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT NOW()
       );
+
+      CREATE TABLE IF NOT EXISTS activity_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id) ON DELETE CASCADE,
+        file_id INT REFERENCES files(id) ON DELETE CASCADE,
+        action VARCHAR(20) CHECK (action IN ('upload', 'download', 'delete', 'share', 'restore', 'view')),
+        ip_address VARCHAR(50),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS permissions (
+        id SERIAL PRIMARY KEY,
+        file_id INT REFERENCES files(id) ON DELETE CASCADE,
+        shared_with INT REFERENCES users(id) ON DELETE CASCADE,
+        access_level VARCHAR(10) CHECK (access_level IN ('view', 'edit')),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
     `;
   try {
     await pool.query(initTableQuery);
