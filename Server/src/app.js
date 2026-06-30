@@ -3,6 +3,7 @@ const cors = require("cors");
 const authRoute = require("./routes/auth.route")
 const folderRoute = require("./routes/folder.route")
 const fileRoute = require("./routes/file.route")
+const logRoute = require("./routes/log.route")
 const cookieParser = require("cookie-parser")
 const fs = require('fs');
 const app = express();
@@ -24,5 +25,6 @@ app.use('/uploads', express.static('uploads'));
 app.use("/api/auth", authRoute);
 app.use("/api/folder", folderRoute);
 app.use("/api/file", fileRoute);
+app.use("/api/logs", logRoute);
 
 module.exports = app;
