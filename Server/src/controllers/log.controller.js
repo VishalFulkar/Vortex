@@ -14,7 +14,7 @@ const getActivityLogs = async (req, res) => {
         console.error('getActivityLogs error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 }
@@ -22,6 +22,12 @@ const getActivityLogs = async (req, res) => {
 const getFileActivityLogs = async (req, res) => {
     const { fileId } = req.params;
     const userId = req.user.id;
+    if (!fileId) {
+        return res.status(400).json({
+            success: false,
+            error: 'fileId is required'
+        });
+    }
 
     try {
         const logs = await logModel.findByFile(fileId, userId);
@@ -34,7 +40,7 @@ const getFileActivityLogs = async (req, res) => {
         console.error('getFileActivityLogs error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 }

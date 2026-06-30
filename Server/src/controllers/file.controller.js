@@ -92,7 +92,7 @@ const uploadFile = async (req, res) => {
         console.error('uploadFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -112,7 +112,7 @@ const getFiles = async (req, res) => {
         console.error('getFiles error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -148,7 +148,7 @@ const deleteFile = async (req, res) => {
         console.error('deleteFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -179,7 +179,7 @@ const downloadFile = async (req, res) => {
         console.error('downloadFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -214,7 +214,7 @@ const renameFile = async (req, res) => {
         console.error('renameFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -252,7 +252,7 @@ const moveFile = async (req, res) => {
         console.error('moveFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -271,7 +271,7 @@ const getTrashedFiles = async (req, res) => {
         console.error('getTrashedFiles error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -305,7 +305,7 @@ const restoreFile = async (req, res) => {
         console.error('restoreFile error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };

@@ -34,7 +34,7 @@ const createFolder = async (req, res) => {
         console.log("create folder error", error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 }
@@ -65,7 +65,7 @@ const getFolders = async (req, res) => {
         console.error('getFolders error:', error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
@@ -100,7 +100,7 @@ const renameFolder = async (req, res) => {
         console.error("rename folder error: ", error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 }
@@ -128,7 +128,7 @@ const deleteFolder = async (req, res) => {
         console.error("delete folder error: ", error);
         res.status(500).json({
             success: false,
-            error: error.message
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 }
@@ -168,7 +168,9 @@ const updateParent = async (req, res) => {
         const isLogicError = error.message.includes('cannot be moved');
         res.status(isLogicError ? 400 : 500).json({
             success: false,
-            error: error.message
+            error: isLogicError
+                ? error.message
+                : process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
         });
     }
 };
