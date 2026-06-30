@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { authUser } = require("../middleware/auth.middleware")
+const { checkQuotaBeforeUpload } = require('../middleware/quota.middleware');
 const multer = require('multer');
 const path = require('path');
 const fileController = require('../controllers/file.controller');
@@ -20,7 +21,7 @@ const upload = multer({
 });
 
 
-router.post('/upload', authUser, upload.single('file'), fileController.uploadFile);
+router.post('/upload', authUser,checkQuotaBeforeUpload, upload.single('file'), fileController.uploadFile);
 router.get('/', authUser, fileController.getFiles);
 router.get('/trash', authUser, fileController.getTrashedFiles);
 router.get('/download/:id', authUser, fileController.downloadFile);

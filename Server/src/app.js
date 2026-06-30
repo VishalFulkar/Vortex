@@ -5,6 +5,7 @@ const folderRoute = require("./routes/folder.route")
 const fileRoute = require("./routes/file.route")
 const logRoute = require("./routes/log.route")
 const shareRoute = require("./routes/share.route")
+const userRoute = require("./routes/user.route")
 const cookieParser = require("cookie-parser")
 const fs = require('fs');
 const app = express();
@@ -27,6 +28,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/folder", folderRoute);
 app.use("/api/file", fileRoute);
 app.use("/api/logs", logRoute);
-app.use("/api/files", shareRoute)
+app.use("/api/files", shareRoute);
+app.use('/api/user', userRoute);
 
 module.exports = app;
