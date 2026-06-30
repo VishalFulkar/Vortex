@@ -49,7 +49,8 @@ const initDB = async () => {
         file_id INT REFERENCES files(id) ON DELETE CASCADE,
         shared_with INT REFERENCES users(id) ON DELETE CASCADE,
         access_level VARCHAR(10) CHECK (access_level IN ('view', 'edit')),
-        created_at TIMESTAMP DEFAULT NOW()
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(file_id, shared_with)
       );
     `;
   try {
