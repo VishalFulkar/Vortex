@@ -3,6 +3,13 @@ const bcrypt = require("bcryptjs")
 const UserModel = require("../models/user.model")
 const pool = require("../config/db")
 
+const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    maxAge: 3600000
+};
+
 async function register(req, res) {
     const { name, email, password } = req.body;
     if (!name || !email || !password) {
@@ -27,12 +34,7 @@ async function register(req, res) {
             password: hashedPassword
         });
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            maxAge: 3600000
-        });
+        res.cookie("token", token, cookieOptions);
         res.status(201).json({
             message: "User created successfully",
             user: { id: user.id, name: user.name, email: user.email }
@@ -65,23 +67,22 @@ async function login(req, res) {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            res.status(401).json({
+            return res.status(401).json({
                 message: "Invalid Credentials"
             })
         }
         const token = jwt.sign({
             id: user.id,
-            role: user.role
         }, process.env.JWT_SECRET, { expiresIn: "1h" })
 
-        res.cookie("token", token);
+        res.cookie("token", token, cookieOptions);
 
         res.status(200).json({
             message: "User logged in successfully",
             user: {
                 id: user.id,
-                email: user.email,
-                role: user.role
+                name: user.name,
+                email: user.email
             }
         })
     } catch (error) {
@@ -95,7 +96,7 @@ async function login(req, res) {
 
 async function logout(req, res) {
     try {
-        res.clearCookie("token")
+        res.clearCookie("token", cookieOptions);
         res.status(200).json({
             message: "User Logged out Successfully"
         })
@@ -108,17 +109,24 @@ async function logout(req, res) {
 
 async function getMe(req, res) {
     const { id } = req.user;
-    const result = await pool.query(
-        " SELECT id, name, email, created_at FROM users WHERE id = $1",
-        [id]
-    )
-    if (!result.rows[0]) return res.status(404).json({
-        message: "User not found"
-    })
+    try {
+        const result = await pool.query(
+            " SELECT id, name, email, created_at FROM users WHERE id = $1",
+            [id]
+        )
+        if (!result.rows[0]) return res.status(404).json({
+            message: "User not found"
+        })
 
-    res.status(200).json({
-        user: result.rows[0]
-    })
+        res.status(200).json({
+            user: result.rows[0]
+        })
+    } catch (error) {
+        console.error('getMe error:', error);
+        res.status(500).json({
+            message: 'Internal server error'
+        });
+    }
 }
 
 module.exports = { register, login, logout, getMe }
