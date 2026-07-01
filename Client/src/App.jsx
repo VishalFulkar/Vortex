@@ -1,10 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import {Routes, Route} from 'react-router-dom'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
+import useAuthStore from './store/authStore'
 
 const App = () => {
+  const { fetchUser } = useAuthStore()
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
+
   return (
     <div>
       <Routes>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import aboutUsVault from '../assets/about_us_vault.png';
-import rightColumnVault from '../assets/right_column_vault.png';
+import aboutUsVault from '../assets/holographic_passcard.png';
+import rightColumnVault from '../assets/holographic_data_sphere.png';
+
 
 const Signup = () => {
     const [name, setName] = useState('');
