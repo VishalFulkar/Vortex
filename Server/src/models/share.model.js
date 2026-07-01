@@ -41,6 +41,21 @@ const shareModel = {
         return result.rows;
     },
 
+    findMyShares: async (userId) => {
+        const result = await pool.query(
+            `SELECT f.id, f.original_name, f.size, f.mimetype, f.created_at,
+            p.access_level, p.shared_with AS target_user_id,
+            u.name AS shared_with_name, u.email AS shared_with_email
+            FROM permissions p
+            JOIN files f ON p.file_id = f.id
+            JOIN users u ON p.shared_with = u.id
+            WHERE f.user_id = $1 AND f.is_deleted = FALSE
+            ORDER BY p.created_at DESC`,
+            [userId]
+        );
+        return result.rows;
+    },
+
     checkAccess: async (fileId, userId) => {
         const result = await pool.query(
             `SELECT access_level FROM permissions

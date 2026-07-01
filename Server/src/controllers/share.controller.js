@@ -129,9 +129,22 @@ const revokeShare = async (req, res) => {
     }
 };
 
+const getMyShares = async (req, res) => {
+    const userId = req.user.id;
+
+    try {
+        const files = await shareModel.findMyShares(userId);
+        res.status(200).json({ success: true, files });
+    } catch (error) {
+        console.error('getMyShares error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
 module.exports = {
     shareFile,
     getFileShares,
     getSharedWithMe,
+    getMyShares,
     revokeShare
 };

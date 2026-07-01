@@ -3,6 +3,7 @@ const fileModel = require("../models/file.model")
 
 const folderModel = require('../models/folder.model');
 const logModel = require('../models/log.model');
+const shareModel = require('../models/share.model');
 const crypto = require('crypto');
 const fs = require('fs');
 
@@ -158,11 +159,27 @@ const downloadFile = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        const file = await fileModel.findById(id, userId);
+        let file = await fileModel.findById(id, userId);
+        
+        if (!file) {
+            // Check if it's shared with this user
+            const permission = await shareModel.checkAccess(id, userId);
+            if (permission) {
+                // If the user expects 'view' to block downloads
+                if (permission.access_level === 'view') {
+                    return res.status(403).json({
+                        success: false,
+                        error: 'View-only access does not permit downloading'
+                    });
+                }
+                file = await fileModel.getById(id);
+            }
+        }
+
         if (!file) {
             return res.status(404).json({
                 success: false,
-                error: 'File not found'
+                error: 'File not found or you do not have permission'
             });
         }
 

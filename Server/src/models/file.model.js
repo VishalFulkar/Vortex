@@ -30,6 +30,14 @@ const fileModel = {
         return result.rows[0];
     },
 
+    getById: async (id) => {
+        const result = await pool.query(
+            `SELECT * FROM files WHERE id = $1 AND is_deleted = FALSE`,
+            [id]
+        );
+        return result.rows[0];
+    },
+
     softDelete: async (id, userId) => {
         const result = await pool.query(
             `UPDATE files SET is_deleted = TRUE
