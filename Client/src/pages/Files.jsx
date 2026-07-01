@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import useFileStore from '../store/fileStore';
 import useFolderStore from '../store/folderStore';
@@ -29,7 +30,19 @@ const Files = () => {
 
   // UI state
   const [viewType, setViewType] = useState('grid');
-  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
+  const setSearchQuery = (val) => {
+    if (val) {
+      searchParams.set('q', val);
+      setSearchParams(searchParams, { replace: true });
+    } else {
+      searchParams.delete('q');
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
+
   const [isUploading, setIsUploading] = useState(false);
   const [notification, setNotification] = useState(null);
 
