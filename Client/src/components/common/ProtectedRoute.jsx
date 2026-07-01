@@ -3,9 +3,9 @@ import { Navigate } from 'react-router-dom';
 import useAuthStore from '../../store/authStore';
 
 const ProtectedRoute = ({ children }) => {
-    const { user, isLoading } = useAuthStore();
+    const { user, isCheckingAuth } = useAuthStore();
 
-    if (isLoading) {
+    if (isCheckingAuth) {
         return (
             <div className="min-h-screen bg-[#f8f9fa] flex flex-col justify-center items-center">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black" />

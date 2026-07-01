@@ -4,6 +4,7 @@ import api from '../services/api';
 const useAuthStore = create((set) => ({
     user: null,
     isLoading: false,
+    isCheckingAuth: true,
     error: null,
 
     register: async (name, email, password) => {
@@ -66,14 +67,14 @@ const useAuthStore = create((set) => ({
     },
 
     fetchUser: async () => {
-        set({ isLoading: true, error: null });
+        set({ isCheckingAuth: true, error: null });
         try {
             const { data } = await api.get('/auth/me');
-            set({ user: data.user, isLoading: false });
+            set({ user: data.user, isCheckingAuth: false });
             return { success: true };
         } catch {
             // 401 = no valid session — not an error worth surfacing
-            set({ user: null, isLoading: false });
+            set({ user: null, isCheckingAuth: false });
             return { success: false };
         }
     },
