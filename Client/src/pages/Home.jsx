@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState, useCallback } from 'react';
 import useAuthStore from '../store/authStore';
+import useFileStore from '../store/fileStore';
+import useFolderStore from '../store/folderStore';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 
@@ -11,15 +12,16 @@ import QuickActions from '../components/home/QuickActions';
 import FileList from '../components/home/FileList';
 import CreateFolderModal from '../components/home/CreateFolderModal';
 import ShareFileModal from '../components/home/ShareFileModal';
+import MoveModal from '../components/files/MoveModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const Home = () => {
-  const { user, isLoading } = useAuthStore();
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { files, fetchFiles, uploadFile, deleteFile, shareFile, moveFile, downloadFile, isLoading: filesLoading } = useFileStore();
+  const { folders, fetchFolders, createFolder, isLoading: foldersLoading } = useFolderStore();
 
-  // Dashboard data states
+  // Dashboard data states (for non-file/folder data)
   const [storage, setStorage] = useState({ used: 0, quota: 5368709120, percentUsed: 0, remaining: 5368709120 });
-  const [files, setFiles] = useState([]);
-  const [folders, setFolders] = useState([]);
   const [sharedCount, setSharedCount] = useState(0);
   const [logs, setLogs] = useState([]);
   const [dashboardLoading, setDashboardLoading] = useState(true);
@@ -29,65 +31,44 @@ const Home = () => {
   const [showFolderModal, setShowFolderModal] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
-  const [selectedShareFile, setSelectedShareFile] = useState('');
+  const [selectedShareFile, setSelectedShareFile] = useState(null);
   const [shareEmail, setShareEmail] = useState('');
   const [shareAccess, setShareAccess] = useState('view');
+  const [moveItem, setMoveItem] = useState(null);
   const [notification, setNotification] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
-  // Route Protection
-  useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/login');
-    }
-  }, [user, isLoading, navigate]);
-
-  // Fetch dashboard data
-  const fetchDashboardData = async () => {
+  // Fetch dashboard specific data
+  const fetchDashboardData = useCallback(async () => {
     if (!user) return;
     try {
       setDashboardLoading(true);
 
-      // 1. Storage
-      const storageRes = await api.get('/user/storage');
-      if (storageRes.data?.success) {
-        setStorage(storageRes.data.storage);
-      }
+      const [storageRes, sharedRes, logsRes] = await Promise.all([
+          api.get('/user/storage').catch(() => ({ data: {} })),
+          api.get('/files/shared-with-me').catch(() => ({ data: {} })),
+          api.get('/logs').catch(() => ({ data: {} }))
+      ]);
 
-      // 2. Files
-      const filesRes = await api.get('/file');
-      if (filesRes.data?.success) {
-        setFiles(filesRes.data.files);
-      }
-
-      // 3. Folders
-      const foldersRes = await api.get('/folder');
-      if (foldersRes.data?.success) {
-        setFolders(foldersRes.data.folders);
-      }
-
-      // 4. Shared With Me
-      const sharedRes = await api.get('/files/shared-with-me');
-      if (sharedRes.data?.success) {
-        setSharedCount(sharedRes.data.files.length);
-      }
-
-      // 5. Activity logs
-      const logsRes = await api.get('/logs');
-      if (logsRes.data?.success) {
-        setLogs(logsRes.data.logs.slice(0, 5));
-      }
+      if (storageRes.data?.success) setStorage(storageRes.data.storage);
+      if (sharedRes.data?.success) setSharedCount(sharedRes.data.files?.length || 0);
+      if (logsRes.data?.success) setLogs(logsRes.data.logs?.slice(0, 5) || []);
+      
     } catch (err) {
       console.error('Error loading dashboard data:', err);
     } finally {
       setDashboardLoading(false);
     }
-  };
+  }, [user]);
 
+  // Initial fetch
   useEffect(() => {
     if (user) {
       fetchDashboardData();
+      fetchFiles();   // root files
+      fetchFolders(); // root folders
     }
-  }, [user]);
+  }, [user, fetchDashboardData, fetchFiles, fetchFolders]);
 
   // Trigger notification toast
   const triggerToast = (message, type = 'success') => {
@@ -110,25 +91,17 @@ const Home = () => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     setIsUploading(true);
-    try {
-      const res = await api.post('/file/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      if (res.data?.success) {
-        triggerToast('File uploaded successfully!');
-        fetchDashboardData();
-      }
-    } catch (err) {
-      const errMsg = err.response?.data?.error || 'Upload failed';
-      triggerToast(errMsg, 'error');
-    } finally {
-      setIsUploading(false);
-      e.target.value = null; // reset
+    const res = await uploadFile(file); // uploads to root
+    setIsUploading(false);
+
+    if (res.success) {
+      triggerToast('File uploaded successfully!');
+      fetchDashboardData(); // update storage & logs
+    } else {
+      triggerToast(res.error, 'error');
     }
+    e.target.value = null; // reset
   };
 
   // Folder Creation Handler
@@ -136,16 +109,14 @@ const Home = () => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
 
-    try {
-      const res = await api.post('/folder', { name: newFolderName });
-      if (res.data?.success) {
-        triggerToast(`Folder "${newFolderName}" created successfully!`);
-        setNewFolderName('');
-        setShowFolderModal(false);
-        fetchDashboardData();
-      }
-    } catch (err) {
-      triggerToast(err.response?.data?.error || 'Folder creation failed', 'error');
+    const res = await createFolder(newFolderName); // creates in root
+    if (res.success) {
+      triggerToast(`Folder "${newFolderName}" created successfully!`);
+      setNewFolderName('');
+      setShowFolderModal(false);
+      fetchDashboardData(); // update logs
+    } else {
+      triggerToast(res.error, 'error');
     }
   };
 
@@ -154,55 +125,59 @@ const Home = () => {
     e.preventDefault();
     if (!selectedShareFile || !shareEmail.trim()) return;
 
-    try {
-      const res = await api.post(`/files/${selectedShareFile}/share`, {
-        email: shareEmail,
-        accessLevel: shareAccess
-      });
-      if (res.data?.success) {
-        triggerToast('File shared successfully!');
-        setShareEmail('');
-        setSelectedShareFile('');
-        setShowShareModal(false);
-        fetchDashboardData();
-      }
-    } catch (err) {
-      triggerToast(err.response?.data?.error || 'Failed to share file', 'error');
+    const res = await shareFile(selectedShareFile, shareEmail, shareAccess);
+    if (res.success) {
+      triggerToast('File shared successfully!');
+      setShareEmail('');
+      setSelectedShareFile(null);
+      setShowShareModal(false);
+      fetchDashboardData(); // update logs
+    } else {
+      triggerToast(res.error, 'error');
     }
   };
 
   // File Download Handler
   const handleDownload = async (fileId, filename) => {
-    try {
-      const response = await api.get(`/file/download/${fileId}`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.parentNode.removeChild(link);
+    const res = await downloadFile(fileId, filename);
+    if (res.success) {
       triggerToast('Download started');
-      fetchDashboardData(); // update activity log
-    } catch (err) {
-      triggerToast('Download failed', 'error');
+      fetchDashboardData(); // update logs
+    } else {
+      triggerToast(res.error, 'error');
     }
   };
 
-  // File Delete Handler
-  const handleDelete = async (fileId) => {
-    if (!window.confirm('Move this file to trash?')) return;
-    try {
-      const res = await api.delete(`/file/${fileId}`);
-      if (res.data?.success) {
-        triggerToast('File moved to trash');
-        fetchDashboardData();
-      }
-    } catch (err) {
-      triggerToast('Failed to delete file', 'error');
+  // File Move Handler
+  const handleMoveSubmit = async (destinationId) => {
+    if (!moveItem) return;
+    
+    // Home currently only renders files for moving
+    const res = await moveFile(moveItem.id, destinationId, null);
+    if (res.success) {
+      triggerToast('Moved successfully');
+      setMoveItem(null);
+      fetchDashboardData();
+    } else {
+      triggerToast(res.error, 'error');
     }
+  };
+
+  // File Delete Handler with ConfirmModal
+  const handleDelete = (fileId) => {
+    setConfirmAction({
+      message: 'Move this file to trash?',
+      onConfirm: async () => {
+        const res = await deleteFile(fileId);
+        if (res.success) {
+          triggerToast('File moved to trash');
+          fetchDashboardData(); // update storage & logs
+        } else {
+          triggerToast(res.error, 'error');
+        }
+        setConfirmAction(null);
+      }
+    });
   };
 
   // Document classification
@@ -215,7 +190,7 @@ const Home = () => {
   const documentsList = files.filter(f => docMimeTypes.includes(f.mimetype)).slice(0, 3);
   const mediaList = files.filter(f => !docMimeTypes.includes(f.mimetype)).slice(0, 3);
 
-  if (isLoading || dashboardLoading) {
+  if (dashboardLoading || filesLoading || foldersLoading) {
     return (
       <div className="min-h-screen bg-[#f8f9fa] flex flex-col justify-center items-center">
         <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-black"></div>
@@ -226,7 +201,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex flex-col p-4 md:p-6 text-black select-none">
-      {/* Top Navigation Bar */}
       <Navbar />
 
       {/* Notification Toast */}
@@ -301,6 +275,7 @@ const Home = () => {
             title="Recent Documents"
             files={documentsList}
             onDownload={handleDownload}
+            onMove={(id, name) => setMoveItem({ type: 'file', id, name })}
             onDelete={handleDelete}
             emptyMessage="No documents in cloud storage."
             iconType="doc"
@@ -309,6 +284,7 @@ const Home = () => {
             title="Recent Media & Spreadsheets"
             files={mediaList}
             onDownload={handleDownload}
+            onMove={(id, name) => setMoveItem({ type: 'file', id, name })}
             onDelete={handleDelete}
             emptyMessage="No spreadsheets or media in cloud storage."
             iconType="media"
@@ -339,6 +315,20 @@ const Home = () => {
         onSubmit={handleShareFile}
       />
 
+      <MoveModal
+        isOpen={!!moveItem}
+        onClose={() => setMoveItem(null)}
+        itemToMove={moveItem}
+        onSubmit={handleMoveSubmit}
+      />
+
+      {confirmAction && (
+        <ConfirmModal
+          message={confirmAction.message}
+          onConfirm={confirmAction.onConfirm}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
     </div>
   );
 };

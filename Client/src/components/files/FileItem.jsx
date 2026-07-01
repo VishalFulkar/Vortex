@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const FileItem = ({ file, viewType, onDownload, onShare, onRename, onDelete }) => {
+const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDelete }) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
 
@@ -103,6 +103,15 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onDelete }) =
                         </svg>
                     </button>
                     <button
+                        onClick={(e) => handleActionClick(e, () => onMove(file.id, file.original_name))}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-black transition-all cursor-pointer"
+                        title="Move"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </button>
+                    <button
                         onClick={(e) => handleActionClick(e, () => onDelete(file.id))}
                         className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-600 transition-all cursor-pointer"
                         title="Move to Trash"
@@ -170,6 +179,15 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onDelete }) =
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 <span>Rename</span>
+                            </button>
+                            <button
+                                onClick={(e) => handleActionClick(e, () => onMove(file.id, file.original_name))}
+                                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer font-bold"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                                <span>Move</span>
                             </button>
                             <button
                                 onClick={(e) => handleActionClick(e, () => onDelete(file.id))}

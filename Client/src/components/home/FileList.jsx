@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const FileList = ({ title, files, onDownload, onDelete, emptyMessage, iconType = 'doc' }) => {
+const FileList = ({ title, files, onDownload, onMove, onDelete, emptyMessage, iconType = 'doc' }) => {
     // Format bytes helper
     const formatBytes = (bytes, decimals = 1) => {
         if (!bytes || bytes === 0) return '0 Bytes';
@@ -62,6 +62,16 @@ const FileList = ({ title, files, onDownload, onDelete, emptyMessage, iconType =
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                </button>
+                                {/* Move */}
+                                <button 
+                                    onClick={() => onMove(file.id, file.original_name)}
+                                    className="p-1.5 hover:bg-gray-200 rounded-lg text-gray-500 hover:text-black transition-colors cursor-pointer"
+                                    title="Move File"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                     </svg>
                                 </button>
                                 {/* Delete */}

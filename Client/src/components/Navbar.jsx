@@ -28,7 +28,7 @@ const Navbar = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                     </Link>
-                    <Link to="/share" className="hover:text-black transition-colors">Share</Link>
+                    <Link to="/shared" className="hover:text-black transition-colors">Shared</Link>
                     <Link to="/activity" className="hover:text-black transition-colors">Activity</Link>
                 </nav>
 
