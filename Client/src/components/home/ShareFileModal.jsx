@@ -43,7 +43,7 @@ const ShareFileModal = ({
         if (!window.confirm('Are you sure you want to revoke access?')) return;
         const res = await revokeShare(selectedFile, targetUserId);
         if (res.success) {
-            setCurrentShares(currentShares.filter(s => s.target_user_id !== targetUserId));
+            setCurrentShares(currentShares.filter(s => s.user_id !== targetUserId));
         }
     };
 
@@ -52,7 +52,7 @@ const ShareFileModal = ({
         const res = await updateShareAccess(selectedFile, email, newAccess);
         if (res.success) {
             setCurrentShares(currentShares.map(s => 
-                s.shared_with_email === email ? { ...s, access_level: newAccess } : s
+                s.email === email ? { ...s, access_level: newAccess } : s
             ));
         }
     };
@@ -135,12 +135,12 @@ const ShareFileModal = ({
                         ) : (
                             <div className="flex flex-col gap-2">
                                 {currentShares.map(share => (
-                                    <div key={share.target_user_id} className="flex items-center justify-between p-2 rounded-xl bg-gray-50/50 border border-gray-100/50">
-                                        <span className="text-xs font-bold text-black truncate w-1/2">{share.shared_with_email}</span>
+                                    <div key={share.user_id} className="flex items-center justify-between p-2 rounded-xl bg-gray-50/50 border border-gray-100/50">
+                                        <span className="text-xs font-bold text-black truncate w-1/2">{share.email}</span>
                                         <div className="flex items-center gap-2">
                                             <button 
                                                 type="button"
-                                                onClick={() => handleToggleAccess(share.shared_with_email, share.access_level)}
+                                                onClick={() => handleToggleAccess(share.email, share.access_level)}
                                                 title="Click to toggle permission"
                                                 className={`text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md transition-colors cursor-pointer hover:opacity-80 ${
                                                     share.access_level === 'edit' ? 'bg-amber-100 text-amber-700 hover:bg-amber-200' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
@@ -149,7 +149,7 @@ const ShareFileModal = ({
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRevoke(share.target_user_id)}
+                                                onClick={() => handleRevoke(share.user_id)}
                                                 className="p-1 hover:bg-red-100 rounded-md text-red-500 hover:text-red-700 transition-colors cursor-pointer"
                                                 title="Revoke Access"
                                             >
