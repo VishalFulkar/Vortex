@@ -87,7 +87,7 @@ const SharedFiles = () => {
             <Navbar />
 
             {notification && (
-                <div className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 border text-sm font-semibold transition-all animate-in slide-in-from-top-4 ${
+                <div className={`fixed top-6 right-6 z-60 px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2 border text-sm font-semibold transition-all animate-in slide-in-from-top-4 ${
                     notification.type === 'error'
                         ? 'bg-red-50 text-red-700 border-red-100'
                         : 'bg-green-50 text-green-700 border-green-100'
