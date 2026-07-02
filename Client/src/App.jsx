@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Files from './pages/Files'
 import SharedFiles from './pages/SharedFiles'
+import Activity from './pages/Activity'
 import useAuthStore from './store/authStore'
 import ProtectedRoute from './components/common/ProtectedRoute'
 
@@ -34,6 +35,11 @@ const App = () => {
         <Route path='/shared' element={
           <ProtectedRoute>
             <SharedFiles />
+          </ProtectedRoute>
+        } />
+        <Route path='/activity' element={
+          <ProtectedRoute>
+            <Activity />
           </ProtectedRoute>
         } />
       </Routes>
