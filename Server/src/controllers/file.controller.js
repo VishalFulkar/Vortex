@@ -327,6 +327,52 @@ const restoreFile = async (req, res) => {
     }
 };
 
+const permanentDeleteFile = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        const file = await fileModel.getTrashedById(id, userId);
+        if (!file) {
+            return res.status(404).json({
+                success: false,
+                error: 'File not found in trash'
+            });
+        }
+
+        const deleted = await fileModel.hardDelete(id, userId);
+        
+        // Remove from filesystem if it exists
+        if (deleted && deleted.path && fs.existsSync(deleted.path)) {
+            try {
+                fs.unlinkSync(deleted.path);
+            } catch (fsError) {
+                console.error('Filesystem unlink error during permanent delete:', fsError);
+                // Continue with deletion since DB entry is gone
+            }
+        }
+
+        await logModel.create({
+            userId,
+            fileId: id,
+            action: 'delete_permanent',
+            ip: req.ip
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'File permanently deleted'
+        });
+    }
+    catch (error) {
+        console.error('permanentDeleteFile error:', error);
+        res.status(500).json({
+            success: false,
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
+        });
+    }
+};
+
 module.exports = {
     uploadFile,
     getFiles,
@@ -335,5 +381,6 @@ module.exports = {
     renameFile,
     moveFile,
     getTrashedFiles,
-    restoreFile
+    restoreFile,
+    permanentDeleteFile
 };

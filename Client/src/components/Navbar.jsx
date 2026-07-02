@@ -61,6 +61,7 @@ const Navbar = () => {
                     </Link>
                     <Link to="/shared" className="hover:text-black transition-colors">Shared</Link>
                     <Link to="/activity" className="hover:text-black transition-colors">Activity</Link>
+                    <Link to="/trash" className="hover:text-black transition-colors">Trash</Link>
                 </nav>
 
                 {/* Search bar & Actions */}

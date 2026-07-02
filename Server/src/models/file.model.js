@@ -60,12 +60,32 @@ const fileModel = {
 
     getTrashed: async (userId) => {
         const result = await pool.query(
-            `SELECT * FROM files
-            WHERE user_id = $1 AND is_deleted = TRUE
-            ORDER BY created_at DESC`,
+            `SELECT f.*, 
+                    (SELECT created_at FROM activity_logs 
+                     WHERE file_id = f.id AND action = 'delete' 
+                     ORDER BY created_at DESC LIMIT 1) as deleted_at
+            FROM files f
+            WHERE f.user_id = $1 AND f.is_deleted = TRUE
+            ORDER BY deleted_at DESC NULLS LAST, f.created_at DESC`,
             [userId]
         );
         return result.rows
+    },
+
+    getTrashedById: async (id, userId) => {
+        const result = await pool.query(
+            `SELECT * FROM files WHERE id = $1 AND user_id = $2 AND is_deleted = TRUE`,
+            [id, userId]
+        );
+        return result.rows[0];
+    },
+
+    hardDelete: async (id, userId) => {
+        const result = await pool.query(
+            `DELETE FROM files WHERE id = $1 AND user_id = $2 AND is_deleted = TRUE RETURNING *`,
+            [id, userId]
+        );
+        return result.rows[0];
     },
 
     rename: async (id, userId, name) => {

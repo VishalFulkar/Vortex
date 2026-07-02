@@ -3,6 +3,7 @@ import api from '../services/api';
 
 const useFileStore = create((set, get) => ({
     files: [],
+    trashedFiles: [],
     isLoading: false,
     
     // Fetch files (defaults to root if folderId is null)
@@ -71,6 +72,52 @@ const useFileStore = create((set, get) => ({
             }
         } catch (err) {
             return { success: false, error: 'Failed to delete file' };
+        }
+        return { success: false, error: 'Unknown error occurred' };
+    },
+    
+    // Fetch trashed files
+    fetchTrashedFiles: async () => {
+        set({ isLoading: true });
+        try {
+            const res = await api.get('/file/trash');
+            if (res.data?.success) {
+                set({ trashedFiles: res.data.files });
+            } else {
+                set({ trashedFiles: [] });
+            }
+        } catch (err) {
+            console.error('fetchTrashedFiles error:', err);
+            set({ trashedFiles: [] });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    // Restore file
+    restoreFile: async (fileId) => {
+        try {
+            const res = await api.patch(`/file/${fileId}/restore`);
+            if (res.data?.success) {
+                await get().fetchTrashedFiles();
+                return { success: true };
+            }
+        } catch (err) {
+            return { success: false, error: err.response?.data?.error || 'Failed to restore file' };
+        }
+        return { success: false, error: 'Unknown error occurred' };
+    },
+    
+    // Permanent Delete
+    permanentDeleteFile: async (fileId) => {
+        try {
+            const res = await api.delete(`/file/${fileId}/permanent`);
+            if (res.data?.success) {
+                await get().fetchTrashedFiles();
+                return { success: true };
+            }
+        } catch (err) {
+            return { success: false, error: err.response?.data?.error || 'Failed to permanently delete file' };
         }
         return { success: false, error: 'Unknown error occurred' };
     },

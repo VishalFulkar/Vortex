@@ -29,6 +29,7 @@ router.put('/:id/rename', authUser, fileController.renameFile);
 router.patch('/:id/move', authUser, fileController.moveFile);
 router.patch('/:id/restore', authUser, fileController.restoreFile);
 router.delete('/:id', authUser, fileController.deleteFile);
+router.delete('/:id/permanent', authUser, fileController.permanentDeleteFile);
 
 
 

@@ -8,6 +8,7 @@ import SharedFiles from './pages/SharedFiles'
 import Activity from './pages/Activity'
 import useAuthStore from './store/authStore'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import Trash from './pages/Trash'
 
 const App = () => {
   const { fetchUser } = useAuthStore()
@@ -40,6 +41,11 @@ const App = () => {
         <Route path='/activity' element={
           <ProtectedRoute>
             <Activity />
+          </ProtectedRoute>
+        } />
+        <Route path='/trash' element={
+          <ProtectedRoute>
+            <Trash />
           </ProtectedRoute>
         } />
       </Routes>
