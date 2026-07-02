@@ -201,6 +201,51 @@ const downloadFile = async (req, res) => {
     }
 };
 
+const viewFile = async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    try {
+        let file = await fileModel.findById(id, userId);
+        
+        if (!file) {
+            // Check if it's shared with this user
+            const permission = await shareModel.checkAccess(id, userId);
+            if (permission) {
+                file = await fileModel.getById(id);
+            }
+        }
+
+        if (!file) {
+            return res.status(404).json({
+                success: false,
+                error: 'File not found or you do not have permission'
+            });
+        }
+
+        await logModel.create({
+            userId,
+            fileId: file.id,
+            action: 'view',
+            ip: req.ip
+        });
+
+        // Send inline so browser can display it
+        res.setHeader('Content-Type', file.mimetype || 'application/octet-stream');
+        res.setHeader('Content-Disposition', `inline; filename="${file.original_name}"`);
+        
+        const path = require('path');
+        res.sendFile(path.resolve(file.path));
+    }
+    catch (error) {
+        console.error('viewFile error:', error);
+        res.status(500).json({
+            success: false,
+            error: process.env.NODE_ENV === 'production' ? 'Internal server error' : error.message
+        });
+    }
+};
+
 const renameFile = async (req, res) => {
     const { id } = req.params;
     const { name } = req.body || {};
@@ -382,5 +427,6 @@ module.exports = {
     moveFile,
     getTrashedFiles,
     restoreFile,
-    permanentDeleteFile
+    permanentDeleteFile,
+    viewFile
 };

@@ -25,6 +25,7 @@ router.post('/upload', authUser,checkQuotaBeforeUpload, upload.single('file'), f
 router.get('/', authUser, fileController.getFiles);
 router.get('/trash', authUser, fileController.getTrashedFiles);
 router.get('/download/:id', authUser, fileController.downloadFile);
+router.get('/view/:id', authUser, fileController.viewFile);
 router.put('/:id/rename', authUser, fileController.renameFile);
 router.patch('/:id/move', authUser, fileController.moveFile);
 router.patch('/:id/restore', authUser, fileController.restoreFile);

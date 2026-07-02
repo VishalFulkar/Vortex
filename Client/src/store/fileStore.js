@@ -121,6 +121,21 @@ const useFileStore = create((set, get) => ({
         }
         return { success: false, error: 'Unknown error occurred' };
     },
+
+    // View file inline
+    viewFile: async (fileId) => {
+        const newTab = window.open('', '_blank');
+        try {
+            const res = await api.get(`/file/view/${fileId}`, { responseType: 'blob' });
+            const contentType = res.headers['content-type'];
+            const url = window.URL.createObjectURL(new Blob([res.data], { type: contentType }));
+            newTab.location.href = url;
+            return { success: true };
+        } catch (err) {
+            newTab.close();
+            return { success: false, error: err.response?.data?.error || 'Failed to view file' };
+        }
+    },
     
     // Rename file
     renameFile: async (fileId, newName, currentFolderId) => {

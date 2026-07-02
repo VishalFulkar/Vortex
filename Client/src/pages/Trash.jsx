@@ -6,7 +6,7 @@ import { formatBytes } from "../utils/formatters";
 import ConfirmModal from '../components/common/ConfirmModal';
 
 const Trash = () => {
-    const { trashedFiles, isLoading, fetchTrashedFiles, restoreFile, permanentDeleteFile } = useFileStore();
+    const { trashedFiles, isLoading, fetchTrashedFiles, restoreFile, permanentDeleteFile, viewFile } = useFileStore();
     const [notification, setNotification] = useState(null);
     const [confirmAction, setConfirmAction] = useState(null);
 
@@ -41,6 +41,13 @@ const Trash = () => {
                 setConfirmAction(null);
             }
         });
+    };
+
+    const handleView = async (fileId) => {
+        const res = await viewFile(fileId);
+        if (!res.success) {
+            triggerToast(res.error || 'Failed to open file', 'error');
+        }
     };
 
     return (
@@ -121,6 +128,16 @@ const Trash = () => {
                                             </td>
                                             <td className="py-4 px-6 align-middle text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleView(file.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 text-sm font-bold transition-colors cursor-pointer"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                        View
+                                                    </button>
                                                     <button
                                                         onClick={() => handleRestore(file.id)}
                                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-sm font-bold transition-colors cursor-pointer"

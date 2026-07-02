@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDelete }) => {
+const FileItem = ({ file, viewType, onView, onDownload, onShare, onRename, onMove, onDelete }) => {
     const [showMenu, setShowMenu] = useState(false);
     const menuRef = useRef(null);
 
@@ -59,7 +59,7 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDel
     if (viewType === 'list') {
         return (
             <div 
-                onDoubleClick={() => onDownload(file.id, file.original_name)}
+                onDoubleClick={() => onView ? onView(file.id) : onDownload(file.id, file.original_name)}
                 className="flex justify-between items-center p-3 rounded-2xl bg-white hover:bg-gray-50 border border-gray-100 hover:border-gray-250 transition-all select-none group"
             >
                 <div className="flex items-center gap-3 overflow-hidden">
@@ -75,6 +75,16 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDel
                 </div>
 
                 <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                        onClick={(e) => handleActionClick(e, () => onView(file.id))}
+                        className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-black transition-all cursor-pointer"
+                        title="View"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
                     <button
                         onClick={(e) => handleActionClick(e, () => onDownload(file.id, file.original_name))}
                         className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-black transition-all cursor-pointer"
@@ -128,7 +138,7 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDel
     // Grid View Card
     return (
         <div 
-            onDoubleClick={() => onDownload(file.id, file.original_name)}
+            onDoubleClick={() => onView ? onView(file.id) : onDownload(file.id, file.original_name)}
             className="bg-white rounded-3xl p-4 border border-gray-100 hover:border-gray-250 shadow-[0_8px_30px_rgb(0,0,0,0.005)] flex flex-col justify-between h-[120px] hover:shadow-md transition-all select-none relative group"
         >
             <div className="flex justify-between items-start">
@@ -153,6 +163,16 @@ const FileItem = ({ file, viewType, onDownload, onShare, onRename, onMove, onDel
                     </button>
                     {showMenu && (
                         <div className="absolute right-0 mt-1 z-15 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 w-28 text-left">
+                            <button
+                                onClick={(e) => handleActionClick(e, () => onView(file.id))}
+                                className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer font-bold"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <span>View</span>
+                            </button>
                             <button
                                 onClick={(e) => handleActionClick(e, () => onDownload(file.id, file.original_name))}
                                 className="w-full text-left px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 cursor-pointer font-bold"

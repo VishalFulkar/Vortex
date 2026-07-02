@@ -19,7 +19,7 @@ const Files = () => {
   const { user } = useAuthStore();
   
   // Bind Zustand Stores
-  const { files, isLoading: filesLoading, fetchFiles, uploadFile, deleteFile, renameFile, moveFile, shareFile, downloadFile } = useFileStore();
+  const { files, isLoading: filesLoading, fetchFiles, uploadFile, deleteFile, renameFile, moveFile, shareFile, downloadFile, viewFile } = useFileStore();
   const { folders, isLoading: foldersLoading, fetchFolders, createFolder, deleteFolder, renameFolder, moveFolder } = useFolderStore();
   
   const pageLoading = filesLoading || foldersLoading;
@@ -132,6 +132,13 @@ const Files = () => {
       triggerToast('Download started');
     } else {
       triggerToast(res.error, 'error');
+    }
+  };
+
+  const handleView = async (id) => {
+    const res = await viewFile(id);
+    if (!res.success) {
+      triggerToast(res.error || 'Failed to open file', 'error');
     }
   };
 
@@ -267,6 +274,7 @@ const Files = () => {
                   key={file.id}
                   file={file}
                   viewType={viewType}
+                  onView={handleView}
                   onDownload={handleDownload}
                   onShare={(id) => { setSelectedShareFile(id); setShowShareModal(true); }}
                   onRename={(id, name) => setRenameItem({ type: 'file', id, name })}
