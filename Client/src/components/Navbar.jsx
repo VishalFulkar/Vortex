@@ -93,7 +93,7 @@ const Navbar = () => {
 
                             {/* User details */}
                             <div className="hidden lg:flex flex-col text-left">
-                                <span className="text-[11px] font-bold text-black leading-tight select-none">
+                                <span className="text-[11px] font-bold text-black capitalize leading-tight select-none">
                                     {user.name}
                                 </span>
                                 <span className="text-[9px] text-gray-400 font-semibold select-none uppercase tracking-wider">

@@ -3,6 +3,7 @@ import useAuthStore from '../store/authStore';
 import useShareStore from '../store/shareStore';
 import useFileStore from '../store/fileStore';
 import Navbar from '../components/Navbar';
+import FileHistoryModal from '../components/files/FileHistoryModal';
 
 const SharedFiles = () => {
     const { user } = useAuthStore();
@@ -10,6 +11,8 @@ const SharedFiles = () => {
     const { downloadFile, viewFile } = useFileStore(); // Reuse the robust logic
     const [notification, setNotification] = useState(null);
     const [activeTab, setActiveTab] = useState('incoming'); // 'incoming' | 'outgoing'
+    const [showHistoryModal, setShowHistoryModal] = useState(false);
+    const [historyFile, setHistoryFile] = useState(null);
 
     useEffect(() => {
         if (user) {
@@ -37,6 +40,11 @@ const SharedFiles = () => {
         if (!res.success) {
             triggerToast(res.error || 'Failed to open file', 'error');
         }
+    };
+
+    const handleHistory = (fileId, fileName) => {
+        setHistoryFile({ id: fileId, name: fileName });
+        setShowHistoryModal(true);
     };
 
     const handleRevoke = async (fileId, targetUserId) => {
@@ -206,6 +214,15 @@ const SharedFiles = () => {
                                             ) : (
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        onClick={() => handleHistory(file.id, file.original_name)}
+                                                        className="p-2 hover:bg-gray-200 rounded-xl text-gray-500 hover:text-black transition-colors cursor-pointer"
+                                                        title="History"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleView(file.id)}
                                                         className="p-2 hover:bg-gray-200 rounded-xl text-gray-500 hover:text-black transition-colors cursor-pointer"
                                                         title="View"
@@ -234,6 +251,15 @@ const SharedFiles = () => {
                     )}
                 </div>
             </main>
+
+            {historyFile && (
+                <FileHistoryModal
+                    isOpen={showHistoryModal}
+                    onClose={() => setShowHistoryModal(false)}
+                    fileId={historyFile.id}
+                    fileName={historyFile.name}
+                />
+            )}
         </div>
     );
 };

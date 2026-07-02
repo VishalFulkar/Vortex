@@ -14,6 +14,7 @@ import ShareFileModal from '../components/home/ShareFileModal';
 import RenameModal from '../components/files/RenameModal';
 import MoveModal from '../components/files/MoveModal';
 import ConfirmModal from '../components/common/ConfirmModal';
+import FileHistoryModal from '../components/files/FileHistoryModal';
 
 const Files = () => {
   const { user } = useAuthStore();
@@ -58,6 +59,8 @@ const Files = () => {
   const [renameItem, setRenameItem] = useState(null);
   const [moveItem, setMoveItem] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyFile, setHistoryFile] = useState(null);
 
   // Fetch data on mount or path change
   useEffect(() => {
@@ -140,6 +143,11 @@ const Files = () => {
     if (!res.success) {
       triggerToast(res.error || 'Failed to open file', 'error');
     }
+  };
+
+  const handleHistory = (fileId, fileName) => {
+    setHistoryFile({ id: fileId, name: fileName });
+    setShowHistoryModal(true);
   };
 
   const handleDeleteFolder = (folderId) => {
@@ -275,6 +283,7 @@ const Files = () => {
                   file={file}
                   viewType={viewType}
                   onView={handleView}
+                  onHistory={handleHistory}
                   onDownload={handleDownload}
                   onShare={(id) => { setSelectedShareFile(id); setShowShareModal(true); }}
                   onRename={(id, name) => setRenameItem({ type: 'file', id, name })}
@@ -328,6 +337,15 @@ const Files = () => {
           message={confirmAction.message}
           onConfirm={confirmAction.onConfirm}
           onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      {historyFile && (
+        <FileHistoryModal
+          isOpen={showHistoryModal}
+          onClose={() => setShowHistoryModal(false)}
+          fileId={historyFile.id}
+          fileName={historyFile.name}
         />
       )}
     </div>

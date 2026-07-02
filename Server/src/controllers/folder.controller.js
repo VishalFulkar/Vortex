@@ -1,4 +1,6 @@
 const folderModel = require('../models/folder.model');
+const fs = require('fs');
+const path = require('path');
 
 const createFolder = async (req, res) => {
     const { name, parentId } = req.body || {};
@@ -118,7 +120,21 @@ const deleteFolder = async (req, res) => {
             })
         }
 
-        await folderModel.delete(id, userId);
+        const { deletedFiles } = await folderModel.delete(id, userId);
+
+        // Physically delete files from storage
+        if (deletedFiles && deletedFiles.length > 0) {
+            deletedFiles.forEach(file => {
+                try {
+                    const filePath = path.resolve(file.path);
+                    if (fs.existsSync(filePath)) {
+                        fs.unlinkSync(filePath);
+                    }
+                } catch (err) {
+                    console.error(`Failed to delete physical file: ${file.path}`, err);
+                }
+            });
+        }
         res.status(200).json({
             success: true,
             message: 'Folder deleted successfully'

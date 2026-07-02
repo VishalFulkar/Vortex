@@ -30,18 +30,27 @@ const folderModel = {
 
     delete: async (id, userId) => {
     const allFolderIds = await folderModel.getAllSubfolderIds(id, userId);
+    let deletedFiles = [];
 
     if (allFolderIds.length > 0) {
+      // First, get all files that are about to be deleted so we can unlink them from the disk
+      const filesResult = await pool.query(
+          `SELECT id, path, size FROM files WHERE folder_id = ANY($1)`,
+          [allFolderIds]
+      );
+      deletedFiles = filesResult.rows;
+
       const sizeResult = await pool.query(
         `SELECT COALESCE(SUM(size), 0) AS total_size
          FROM files
-         WHERE folder_id = ANY($1) AND is_deleted = FALSE`,
+         WHERE folder_id = ANY($1)`,
         [allFolderIds]
       );
       const totalSize = sizeResult.rows[0].total_size;
+
+      // Delete the files from the database
       await pool.query(
-        `UPDATE files SET is_deleted = TRUE
-         WHERE folder_id = ANY($1) AND is_deleted = FALSE`,
+        `DELETE FROM files WHERE folder_id = ANY($1)`,
         [allFolderIds]
       );
       if (totalSize > 0) {
@@ -55,7 +64,7 @@ const folderModel = {
       `DELETE FROM folders WHERE id = $1 AND user_id = $2`,
       [id, userId]
     );
-    return result.rowCount;
+    return { rowCount: result.rowCount, deletedFiles };
   },
 
     rename: async (id, userId, name) => {

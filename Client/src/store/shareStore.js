@@ -41,6 +41,17 @@ const useShareStore = create((set, get) => ({
         }
     },
 
+    getFileShares: async (fileId) => {
+        try {
+            const response = await api.get(`/files/${fileId}/shares`);
+            if (response.data.success) {
+                return { success: true, shares: response.data.shares };
+            }
+        } catch (error) {
+            return { success: false, error: error.response?.data?.error || 'Failed to fetch file shares' };
+        }
+    },
+
     revokeShare: async (fileId, targetUserId) => {
         try {
             const response = await api.delete(`/files/${fileId}/share/${targetUserId}`);
